@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#060c18" />
+  <title>Vektoren im Raum · LMG TECH</title>
+  <meta name="description" content="3D-Werkzeug für die analytische Geometrie: Punkte, Vektoren, Geraden und Ebenen eingeben, im Schrägbild drehen und mit vollständigem Rechenweg untersuchen – mit Aufgaben zu Pyramide, Flugbahnen und Schattenwurf." />
+  <meta property="og:image" content="preview.jpg" />
+  <link rel="icon" type="image/png" href="lmg-tech-logo.png" />
+  <link rel="apple-touch-icon" href="lmg-tech-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <link rel="stylesheet" href="src/style.css" />
+  <link rel="stylesheet" href="src/math.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene" aria-label="3D-Koordinatensystem mit Punkten, Geraden und Ebenen"></canvas>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+
+    <div id="labels" aria-hidden="true"></div>
+    <div id="hoverTip" role="tooltip"></div>
+
+    <header class="brand">
+      <a class="logo" href="#" aria-label="LMG TECH"><img src="lmg-tech-logo.png" alt="LMG TECH Logo" width="72" height="72" /></a>
+      <div class="titles">
+        <div class="eyebrow">Analytische Geometrie · Mathematik</div>
+        <h1>Vektoren <em>im Raum</em></h1>
+        <p>Punkte, Geraden und Ebenen – mit Rechenweg</p>
+      </div>
+    </header>
+
+    <div class="tally" id="tally" aria-label="Modus">
+      <span class="t"><i></i><b id="tMode">Werkstatt</b></span>
+      <span class="t-lbl" id="tCount">0 Objekte</span>
+    </div>
+
+    <!-- Objekte & Aufgaben -->
+    <nav class="index mindex" id="index" aria-label="Objekte und Aufgaben">
+      <button class="index-toggle" id="indexToggle" aria-expanded="true" aria-controls="panelBody">
+        <span id="indexTitle">Objekte</span><span class="count" id="partCount"></span><svg viewBox="0 0 12 12" width="12" height="12"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      </button>
+      <div id="panelBody">
+        <div class="tabs" role="tablist">
+          <button class="tab on" id="tabObj" role="tab" aria-selected="true">Werkstatt</button>
+          <button class="tab" id="tabTask" role="tab" aria-selected="false">Aufgaben</button>
+        </div>
+        <div id="paneObj">
+          <form class="inputrow" id="inputForm" autocomplete="off">
+            <input id="cmd" type="text" spellcheck="false" placeholder="z. B. A(1|2|3)" aria-label="Eingabe" />
+            <button type="submit" class="addbtn" aria-label="Hinzufügen">+</button>
+          </form>
+          <div class="err" id="err" hidden></div>
+          <div class="examples" id="examples"></div>
+          <ol id="objList"></ol>
+          <button class="helpbtn" id="helpBtn" aria-expanded="false">Eingabe-Hilfe</button>
+          <div class="help" id="help" hidden>
+            <div><code>A(1|2|3)</code> Punkt</div>
+            <div><code>u = (2|−1|0)</code> · <code>u = AB</code> Vektor</div>
+            <div><code>g: x = (1|0|2) + t·(1|1|0)</code></div>
+            <div><code>g = Gerade(A, B)</code></div>
+            <div><code>E: 2x1 − x2 + 3x3 = 6</code></div>
+            <div><code>E: x = A + r·u + s·v</code></div>
+            <div><code>E: (x − (1|0|0))·(2|1|0) = 0</code></div>
+            <div><code>E = Ebene(A, B, C)</code> · <code>M = Mittelpunkt(A, B)</code></div>
+            <p>Dezimalzahlen mit Komma in <code>(1,5|2|0)</code> oder mit Punkt. Großbuchstabe = Punkt/Ebene, Kleinbuchstabe = Vektor/Gerade. Zwei Objekte vergleichen: das erste anklicken, das zweite mit gedrückter Umschalttaste – oder unten im Infofeld wählen.</p>
+          </div>
+        </div>
+        <div id="paneTask" hidden>
+          <ol id="taskList"></ol>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Analyse -->
+    <aside id="info" class="info minfo" aria-hidden="true">
+      <div class="grab" aria-hidden="true"></div>
+      <button class="close" id="infoClose" aria-label="Schließen">×</button>
+      <div class="info-kicker"><span class="swatch"></span><span id="infoKicker"></span></div>
+      <h2 id="infoTitle"></h2>
+      <div class="formula" id="infoFormula"></div>
+      <div class="live" id="infoLive" hidden></div>
+      <div class="cmp">
+        <label for="cmpSel">Lage zu</label>
+        <select id="cmpSel"></select>
+      </div>
+      <div id="infoBlocks"></div>
+      <dl id="infoFacts"></dl>
+      <div class="info-actions">
+        <button class="btn" id="infoFocus">Heranzoomen</button>
+        <button class="btn ghost" id="infoHide" aria-label="Ausblenden">Ausblenden</button>
+        <button class="btn ghost" id="infoDel" aria-label="Löschen">Löschen</button>
+      </div>
+    </aside>
+
+    <div class="readout" aria-label="Status">
+      <div><span class="k">Ansicht</span><span class="v" id="rView">Schrägbild</span></div>
+      <div><span class="k">Bereich</span><span class="v" id="rRange">±6</span></div>
+      <div><span class="k">Auswahl</span><span class="v" id="rSel">—</span></div>
+    </div>
+
+    <div class="zoom" aria-label="Zoom">
+      <button id="zoomIn" aria-label="Hineinzoomen">+</button>
+      <input id="zoomSlider" type="range" min="0" max="1000" value="500" aria-label="Zoomstufe" />
+      <button id="zoomOut" aria-label="Herauszoomen">−</button>
+    </div>
+
+    <div class="scalebar" aria-label="Maßstab"><div class="bar" id="scaleBar"></div><span id="scaleLabel">1 LE</span></div>
+
+    <section class="phase" id="phase" aria-live="polite" hidden>
+      <div class="phase-top">
+        <span class="phase-no" id="phaseNo">01 / 05</span>
+        <span class="phase-nav">
+          <button id="phasePrev" aria-label="Vorheriger Schritt">‹</button>
+          <button id="phaseNext" aria-label="Nächster Schritt">›</button>
+          <button id="phaseExit" aria-label="Aufgabe beenden" title="Aufgabe beenden">×</button>
+        </span>
+      </div>
+      <h3 id="phaseTitle"></h3>
+      <p id="phaseText"></p>
+      <div class="phase-track" id="phaseTrack"></div>
+    </section>
+
+    <footer class="controls" id="controls">
+      <button class="play paused" id="play" aria-label="Abspielen">
+        <svg class="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>
+      </button>
+      <div class="timeline">
+        <input id="scrub" type="range" min="0" max="10000" value="5000" step="1" aria-label="Parameter" />
+        <div class="ticks" id="ticks"></div>
+      </div>
+      <span class="pval" id="pval">t = 0</span>
+      <button class="opts-btn" id="optsBtn" aria-label="Optionen" aria-expanded="false" aria-controls="opts">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="7" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="17" r="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+      </button>
+      <div class="opts" id="opts">
+        <label class="sel">Ansicht
+          <select id="view">
+            <option value="schraeg" selected>Schrägbild</option>
+            <option value="oben">Draufsicht (x₁x₂)</option>
+            <option value="vorne">Vorderansicht (x₂x₃)</option>
+            <option value="seite">Seitenansicht (x₁x₃)</option>
+          </select>
+        </label>
+        <label class="sel">Bereich
+          <select id="range">
+            <option value="4">±4</option>
+            <option value="6" selected>±6</option>
+            <option value="8">±8</option>
+            <option value="12">±12</option>
+          </select>
+        </label>
+        <button class="chip on" id="grid" aria-pressed="true" title="Gitter in der x₁x₂-Ebene">Gitter</button>
+        <button class="chip on" id="guides" aria-pressed="true" title="Koordinatenweg, Spurpunkte und Hilfslinien">Hilfslinien</button>
+        <button class="chip on" id="labelsBtn" aria-pressed="true" title="Beschriftungen ein/aus">Labels</button>
+        <button class="chip" id="reset" title="Ansicht zurücksetzen">Ansicht</button>
+      </div>
+    </footer>
+
+    <div id="loader">
+      <div class="loader-inner">
+        <img src="lmg-tech-logo.png" alt="" width="64" height="64" />
+        <div class="loader-title">Lade Koordinatensystem</div>
+        <div class="loader-bar"><i id="loadBar"></i></div>
+        <div class="loader-pct" id="loadPct">0 %</div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
