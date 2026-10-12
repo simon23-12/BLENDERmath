@@ -22,13 +22,13 @@ Dann http://127.0.0.1:5173 öffnen (kein `npm install` nötig; Three.js und KaTe
 
 | Eingabe | Objekt |
 | --- | --- |
-| `A(1|2|3)` · `A(1,5|2|0)` · `A = (1,2,3)` | Punkt |
-| `u = (2|−1|0)` · `u = AB` · `u = B − A` | Vektor (bei `AB` ab A gezeichnet) |
-| `g: x = (1|0|2) + t·(1|1|0)` · `g: x = A + t·AB` | Gerade (Parameterform) |
+| `A(1\|2\|3)` · `A(1,5\|2\|0)` · `A = (1,2,3)` | Punkt |
+| `u = (2\|−1\|0)` · `u = AB` · `u = B − A` | Vektor (bei `AB` ab A gezeichnet) |
+| `g: x = (1\|0\|2) + t·(1\|1\|0)` · `g: x = A + t·AB` | Gerade (Parameterform) |
 | `g = Gerade(A, B)` | Gerade durch zwei Punkte |
 | `E: 2x1 − x2 + 3x3 = 6` · `E: x + y + z = 1` | Ebene (Koordinatenform) |
 | `E: x = A + r·u + s·v` | Ebene (Parameterform) |
-| `E: (x − (1|0|0))·(2|1|0) = 0` | Ebene (Normalenform) |
+| `E: (x − (1\|0\|0))·(2\|1\|0) = 0` | Ebene (Normalenform) |
 | `E = Ebene(A, B, C)` · `M = Mittelpunkt(A, B)` | Konstruktionen |
 
 Großbuchstabe = Punkt/Ebene, Kleinbuchstabe = Vektor/Gerade. Objekte werden im Browser gespeichert.
